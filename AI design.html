@@ -1,0 +1,800 @@
+<!<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ARTISAN | AI Graphic Design & Emblems</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700&display=swap');
+
+        :root {
+            /* Color Palette */
+            --bg-deep: #0B132B;
+            --bg-darker: #0d1B2A;
+            --text-main: #FFFFFF;
+            --text-muted: #E0E1DD;
+            
+            /* Accents & Glows */
+            --cyan: #00F2FE;
+            --blue-accent: #4FACFE;
+            --gold: #F9D423;
+            --orange: #FF4E50;
+            
+            /* Glassmorphism */
+            --glass-bg: rgba(11, 19, 43, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-glow: rgba(0, 242, 254, 0.15);
+
+            /* Typography */
+            --font-main: 'Inter', system-ui, sans-serif;
+            --font-display: 'Orbitron', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            /* Subtle grid background for tech feel */
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(79, 172, 254, 0.15) 0%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            background-attachment: fixed;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* Utility Classes */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            color: var(--bg-deep);
+            font-weight: 800;
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(249, 212, 35, 0.4);
+        }
+
+        .btn-gold:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(249, 212, 35, 0.8), 0 0 40px rgba(255, 78, 80, 0.5);
+        }
+
+        .btn-cyan {
+            background: transparent;
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-cyan::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.4), transparent);
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+
+        .btn-cyan:hover::before {
+            left: 100%;
+        }
+
+        .btn-cyan:hover {
+            box-shadow: 0 0 15px var(--cyan), inset 0 0 10px var(--cyan);
+            background: rgba(0, 242, 254, 0.1);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        header.scrolled {
+            background: rgba(11, 19, 43, 0.85);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 10px 5%;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--text-main), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+            font-weight: 400;
+        }
+
+        .nav-links a:hover {
+            color: var(--cyan);
+            text-shadow: 0 0 8px var(--cyan);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: var(--blue-accent);
+            filter: blur(150px);
+            z-index: -1;
+            opacity: 0.3;
+            border-radius: 50%;
+        }
+
+        .hero-subtitle {
+            color: var(--cyan);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 40px;
+            max-width: 900px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        /* Portfolio Section */
+        .portfolio {
+            padding: 80px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: var(--text-main);
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .filter-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .filter-btn.active {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        /* Card Styling */
+        .card {
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--bg-darker);
+            border: 1px solid var(--glass-border);
+        }
+
+        .card-img-wrapper {
+            width: 100%;
+            padding-top: 100%; /* 1:1 Aspect Ratio */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card-info {
+            position: absolute;
+            bottom: -100px; /* Hidden initially */
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(11,19,43,1) 0%, rgba(11,19,43,0) 100%);
+            transition: bottom 0.4s ease;
+        }
+
+        .card-category {
+            color: var(--cyan);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Card Hover Effects */
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--cyan);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px var(--glass-glow);
+        }
+
+        .card:hover img {
+            transform: scale(1.1);
+        }
+
+        .card:hover .card-info {
+            bottom: 0;
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        /* Interactive Modal / Side Panel */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            background: rgba(11, 19, 43, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--cyan);
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow-y: auto;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            padding: 40px;
+        }
+
+        .modal-panel.active {
+            right: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--orange);
+            text-shadow: 0 0 10px var(--orange);
+        }
+
+        .modal-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section h4 {
+            color: var(--gold);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .modal-section p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .modal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-tag {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: var(--text-main);
+        }
+
+        /* Footer & Contact Form */
+        .footer {
+            margin-top: 80px;
+            padding: 60px 5%;
+            background: var(--bg-darker);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .contact-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .contact-container h2 {
+            font-family: var(--font-display);
+            color: var(--cyan);
+            margin-bottom: 30px;
+        }
+
+        .contact-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .form-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--blue-accent);
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+        }
+
+        select.form-input {
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px top 50%;
+            background-size: 12px auto;
+        }
+        
+        select.form-input option {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+        }
+
+        .footer-bottom {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 20px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .nav-links {
+                display: none;
+            }
+            .contact-form {
+                flex-direction: column;
+            }
+            .modal-panel {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header" class="glass-panel">
+        <div class="logo">AI ARTISAN</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#portfolio">Portfolio</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+        <button class="btn-gold" onclick="document.getElementById('contact').scrollIntoView({behavior: 'smooth'})">Get a Quote</button>
+    </header>
+
+    <section id="hero" class="hero">
+        <div class="hero-subtitle">AI-Powered Graphic Design | Precision Creativity, Unlimited Imagination</div>
+        <h1 class="hero-title">EMBLEMS, LOGOS, <br>& VISUAL IDENTITIES</h1>
+        <button class="btn-cyan" onclick="document.getElementById('portfolio').scrollIntoView({behavior: 'smooth'})">Start Your Design</button>
+    </section>
+
+    <section id="portfolio" class="portfolio">
+        <h2 class="section-title">FEATURED WORKS</h2>
+        
+        <div class="filter-tabs" id="filter-container">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="travel">Travel</button>
+            <button class="filter-btn" data-filter="cultural">Cultural</button>
+            <button class="filter-btn" data-filter="culinary">Culinary</button>
+            <button class="filter-btn" data-filter="entertainment">Entertainment</button>
+            <button class="filter-btn" data-filter="gaming">Gaming</button>
+            <button class="filter-btn" data-filter="university-life">University Life</button>
+            <button class="filter-btn" data-filter="scenery">Scenery</button>
+            <button class="filter-btn" data-filter="GO">GO</button>
+        </div>
+
+        <div class="grid" id="portfolio-grid">
+            <!-- Cards will be injected by JavaScript -->
+        </div>
+    </section>
+
+    <!-- Interactive Work Detail Modal Panel -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <aside class="modal-panel" id="modal-panel">
+        <button class="close-btn" id="close-modal">&#10005;</button>
+        <img src="" alt="Work Detail" class="modal-img" id="modal-img">
+        <h3 class="modal-title" id="modal-title">WORK DETAIL</h3>
+        
+        <div class="modal-section">
+            <h4>Concept & Prompt Styles</h4>
+            <p id="modal-concept"></p>
+        </div>
+        
+        <div class="modal-section">
+            <h4>AI Process Logic</h4>
+            <p id="modal-logic"></p>
+        </div>
+        
+        <div class="modal-section">
+            <h4>Business Applications</h4>
+            <div class="modal-tags" id="modal-apps">
+                <!-- Tags injected via JS -->
+            </div>
+        </div>
+    </aside>
+
+    <footer id="contact" class="footer">
+        <div class="contact-container">
+            <h2>START YOUR DESIGN JOURNEY</h2>
+            <form class="contact-form" onsubmit="event.preventDefault();">
+                <input type="text" class="form-input" placeholder="Your Name" required>
+                <input type="email" class="form-input" placeholder="Your Email" required>
+                <select class="form-input" required>
+                    <option value="" disabled selected>Select Project Type</option>
+                    <option value="logo">Logo Design</option>
+                    <option value="emblem">Emblem / Badge</option>
+                    <option value="branding">Full Brand Identity</option>
+                    <option value="other">Other</option>
+                </select>
+                <button type="submit" class="btn-gold">Send Request</button>
+            </form>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 AI ARTISAN DESIGN STUDIO. ALL RIGHTS RESERVED.
+        </div>
+    </footer>
+
+    <script>
+        // Portfolio Data Source
+        const portfolioData = [
+    {
+        id: 'travel-logo',
+        title: 'Travel LOGO',
+        category: 'travel',
+        image: 'Images/Travel-Logo.png',
+        concept: 'The artwork represents the spirit of adventure, navigation, and world travel, organized in a harmonious, cosmic wheel structure reminiscent of a compass rose or astrological calendar.',
+        logic: 'Generates a radial grid, places focal and orbital icons, enforces uniform line art, and applies a cyan-to-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'mahjong-logo',
+        title: 'Mahjong LOGO',
+        category: 'cultural',
+        image: 'Images/Mahjong-Logo.png',
+        concept: 'Celestial Mahjong emblem; monoline vector art, neon cyan-gold gradient, dark blue background, sacred geometry radial starburst.',
+        logic: 'Creates a radial starburst frame, centers four Mahjong tiles, applies uniform monoline vector style and cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'culinary-catch-logo',
+        title: 'Culinary Catch LOGO',
+        category: 'culinary',
+        image: 'Images/Food-Logo.png',
+        concept: 'Celestial culinary emblem; salmon steak, chef hats, herbs, cutlery monoline line art, cyan-gold gradient, dark blue background.',
+        logic: 'Generates radial geometric frame, centers salmon steak surrounded by culinary icons, applies monoline style, colors with cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'cinema-stub-logo',
+        title: 'Cinema Stub LOGO',
+        category: 'entertainment',
+        image: 'Images/Cinema-Logo.png',
+        concept: 'Celestial cinema emblem; movie ticket stub, camera apertures, gears monoline vector art, cyan-gold gradient, dark blue background.',
+        logic: 'Generates radial starburst frame, centers cinema ticket surrounded by camera motifs, applies monoline vector style and cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'e-sport-logo',
+        title: 'E-Sport LOGO',
+        category: 'gaming',
+        image: 'Images/E-Sport-Logo.png',
+        concept: 'Celestial gaming emblem; gamepad controller, flames, stars monoline vector art, cyan-gold gradient, dark blue background.',
+        logic: 'Generates radial starburst frame, centers game controller with flame motifs, applies monoline vector style and cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'hkust-logo',
+        title: 'HKUST LOGO',
+        category: 'University Life',
+        image: 'Images/HKUST-Logo.png',
+        concept: 'Celestial academic emblem; open book, setting sun, stars, gears monoline vector art, cyan-gold gradient, dark blue background.',
+        logic: 'Generates radial starburst frame, centers open book and sun motif, applies monoline vector style and cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'scenery-logo',
+        title: 'Scenery LOGO',
+        category: 'scenery',
+        image: 'Images/View-Logo.png',
+        concept: 'Celestial photography emblem; vintage SLR camera, lenses, telescope, eye, monoline vector art, cyan-gold gradient, dark blue background.',
+        logic: 'Generates radial starburst frame, centers camera surrounded by optical icons, applies monoline vector style and cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    },
+    {
+        id: 'go-logo',
+        title: 'GO LOGO',
+        category: 'GO',
+        image: 'Images/GO-Logo.png',
+        concept: 'Celestial Go board emblem; Weiqi grid, Yin-Yang symbols, monoline vector art, cyan-gold gradient, dark blue background.',
+        logic: 'Generates radial starburst frame, centers Go board surrounded by dualistic motifs, applies monoline vector style and cyan-gold gradient.',
+        apps: ['Instagram Logo']
+    }
+];
+
+        const gridContainer = document.getElementById('portfolio-grid');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        
+        // Modal elements
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalPanel = document.getElementById('modal-panel');
+        const closeModalBtn = document.getElementById('close-modal');
+        const modalImg = document.getElementById('modal-img');
+        const modalTitle = document.getElementById('modal-title');
+        const modalConcept = document.getElementById('modal-concept');
+        const modalLogic = document.getElementById('modal-logic');
+        const modalApps = document.getElementById('modal-apps');
+
+        // Render Cards
+        function renderCards() {
+            gridContainer.innerHTML = '';
+            portfolioData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.setAttribute('data-category', item.category);
+                card.setAttribute('data-id', item.id);
+                
+                card.innerHTML = `
+                    <div class="card-img-wrapper">
+                        <img src="${item.image}" alt="${item.title}">
+                    </div>
+                    <div class="card-info">
+                        <span class="card-category">${item.category}</span>
+                        <h3 class="card-title">${item.title}</h3>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => openModal(item));
+                gridContainer.appendChild(card);
+            });
+        }
+
+        // Filter Logic
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filterValue = btn.getAttribute('data-filter');
+                const cards = document.querySelectorAll('.card');
+                
+                cards.forEach(card => {
+                    if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // Modal Logic
+        function openModal(data) {
+            modalImg.src = data.image;
+            modalTitle.textContent = `WORK DETAIL: ${data.title}`;
+            modalConcept.textContent = data.concept;
+            modalLogic.textContent = data.logic;
+            
+            modalApps.innerHTML = '';
+            data.apps.forEach(app => {
+                const span = document.createElement('span');
+                span.className = 'modal-tag';
+                span.textContent = app;
+                modalApps.appendChild(span);
+            });
+
+            modalOverlay.classList.add('active');
+            modalPanel.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            modalPanel.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+
+        // Header Scroll Effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', renderCards);
+    </script>
+</body>
+</html>

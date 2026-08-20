@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Yu — Generative AI Showcase</title>
+    
+    <!-- Google Fonts: Cormorant Garamond for Serifs & Plus Jakarta Sans for UI text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gallery: {
+                            bg: '#F9F9FB',
+                            card: '#F5F5F7',
+                            darkBg: '#0F172A',
+                            darkCard: '#111C2F',
+                            text: '#0F172A',
+                            darkText: '#F8FAFC',
+                            muted: '#64748B',
+                            accent: '#D4A017'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    letterSpacing: {
+                        'ultra': '0.3em',
+                        'widest': '0.2em'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js for lightweight state management -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        /* Custom smooth scroll & hide scrollbars while maintaining functionality */
+        html {
+            background-color: #F9F9FB;
+            color: #0F172A;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            scroll-behavior: smooth;
+        }
+
+        /* Subtle smooth transition for theme switching */
+        .theme-transition {
+            transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Fine grain texture overlay for gallery tactile feel */
+        .bg-grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+        }
+
+        /* Custom minimal scrollbar */
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(140, 133, 123, 0.3);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(140, 133, 123, 0.6);
+        }
+
+        /* Custom Image Vignette Effect */
+        .image-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .image-container img {
+            transition: transform 1.8s cubic-bezier(0.16, 1, 0.3, 1), filter 1.2s ease;
+        }
+        .image-container:hover img {
+            transform: scale(1.035);
+        }
+
+        /* Delicate text selection */
+        ::selection {
+            background: #8C857B;
+            color: #FAF8F5;
+        }
+    </style>
+</head>
+<body x-data="galleryApp()" 
+      class="bg-grain min-h-screen relative antialiased selection:bg-gallery-accent selection:text-white theme-transition cursor-default bg-[#F9F9FB] text-[#0F172A] transition-colors duration-500 dark:bg-[#0F172A] dark:text-[#F8FAFC]"
+      @mousemove="updateCursor($event)">
+
+    <!-- Custom Follower Cursor Badge -->
+    <div class="pointer-events-none fixed z-50 transition-opacity duration-300 -translate-x-1/2 -translate-y-1/2 hidden md:block"
+         :style="`left: ${cursor.x}px; top: ${cursor.y}px;`"
+         :class="hoveringImage ? 'opacity-100 scale-100' : 'opacity-0 scale-75 transition-transform duration-300'">
+        <div class="px-3 py-1.5 rounded-full bg-gallery-text/90 dark:bg-gallery-darkText/90 text-gallery-bg dark:text-gallery-darkBg text-[10px] tracking-widest uppercase font-light backdrop-blur-sm shadow-2xl">
+            <span x-text="cursorText">EXPLORE</span>
+        </div>
+    </div>
+
+    <!-- Scroll Progress Line -->
+    <div class="fixed top-0 left-0 h-[1.5px] bg-gallery-text dark:bg-gallery-darkText z-50 transition-all duration-150"
+         :style="`width: ${scrollProgress}%`"></div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200/70 bg-[#F9F9FB]/85 backdrop-blur-xl dark:border-slate-700/70 dark:bg-[#0F172A]/80">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-8 lg:px-10">
+            <a href="#" @click.prevent="scrollToTop()" class="flex items-center gap-3 text-[0.78rem] font-semibold uppercase tracking-[0.28em] text-[#0F172A] transition hover:text-[#D4A017] dark:text-[#F8FAFC]">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D4A017]/30 bg-[#D4A017]/10 font-mono text-[0.8rem] text-[#D4A017]">M</span>
+                <span class="leading-none">MAX YU <span class="ml-2 text-[#64748B] dark:text-slate-400">/ HKUST '29</span></span>
+            </a>
+
+            <nav class="flex items-center gap-2 md:gap-3">
+                <button type="button" onclick="scrollToShowcases()" class="rounded-full border border-slate-300/80 bg-white/70 px-3 py-2 font-mono text-[0.68rem] font-medium uppercase tracking-[0.24em] text-[#0F172A] transition hover:border-[#D4A017] hover:text-[#D4A017] dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-[#F8FAFC]">
+                    SHOWCASE 
+                </button>
+                <button id="themeToggleBtn" type="button" onclick="toggleTheme()" class="rounded-full border border-slate-300/80 px-3 py-2 text-[0.68rem] font-medium uppercase tracking-[0.24em] text-[#0F172A] transition hover:border-[#D4A017] hover:text-[#D4A017] dark:border-slate-700/70 dark:text-[#F8FAFC]">
+                    DARK MODE 🌙
+                </button>
+                <a href="mailto:ttyuaa@connect.ust.hk" class="rounded-full px-3 py-2 text-[0.68rem] font-medium uppercase tracking-[0.24em] text-[#64748B] transition hover:text-[#0F172A] dark:text-slate-400 dark:hover:text-[#F8FAFC]">
+                    ABOUT & CONTACT
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Exhibition Stream Container -->
+    <main class="w-full">
+        <!-- Hero Exhibition Title Screen -->
+        <section class="min-h-[calc(100vh-5rem)] w-full px-6 py-20 md:px-8 lg:px-10 lg:py-24">
+            <div class="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+                <div class="max-w-3xl">
+                    <p class="mb-6 font-mono text-[0.72rem] uppercase tracking-[0.32em] text-[#64748B]">
+                        YEAR 2 ARCHIVE • UPDATED 2026
+                    </p>
+                    <h1 class="text-5xl font-semibold leading-[0.95] tracking-[-0.03em] text-[#0F172A] sm:text-6xl lg:text-7xl dark:text-[#F8FAFC]">
+                        Max Yu
+                        <span class="mt-3 block text-[#D4A017]">Innovation in Progress.</span>
+                    </h1>
+                    <p class="mt-6 max-w-2xl text-base leading-8 text-[#64748B] sm:text-lg">
+                        Year 2 student at Hong Kong University of Science and Technology. Exploring the intersection of technology, design, and problem-solving through hands-on showcases and creative builds.
+                    </p>
+
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        <button type="button" onclick="scrollToShowcases()" class="rounded-full bg-[#0F172A] px-5 py-3 text-sm font-medium uppercase tracking-[0.24em] text-white transition hover:bg-[#D4A017] dark:bg-[#F8FAFC] dark:text-[#0F172A]">
+                            EXPLORE SHOWCASES ↓
+                        </button>
+                    </div>
+                </div>
+
+                <div class="rounded-[2rem] border border-slate-200/80 bg-white/70 p-6 shadow-[0_25px_80px_-30px_rgba(15,23,42,0.25)] backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70">
+                    <div class="flex items-center justify-between text-[0.68rem] font-mono uppercase tracking-[0.28em] text-[#64748B]">
+                        <span>STATUS: UNDERGRADUATE</span>
+                        <span>FEATURED: 6 PROJECTS</span>
+                    </div>
+                    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-2xl border border-slate-200/70 bg-[#F9F9FB] p-4 dark:border-slate-700/70 dark:bg-[#111C2F]">
+                            <p class="text-[0.7rem] font-mono uppercase tracking-[0.28em] text-[#64748B]">FOCUS</p>
+                            <p class="mt-2 text-lg font-semibold text-[#0F172A] dark:text-[#F8FAFC]">Coding & Science & AI</p>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200/70 bg-[#F9F9FB] p-4 dark:border-slate-700/70 dark:bg-[#111C2F]">
+                            <p class="text-[0.7rem] font-mono uppercase tracking-[0.28em] text-[#64748B]">DEGREE</p>
+                            <p class="mt-2 text-lg font-semibold text-[#0F172A] dark:text-[#F8FAFC]">BIEN in HKUST</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-6 py-16 md:px-8 lg:px-10">
+            <div class="grid gap-8 rounded-[2rem] border border-slate-200/80 bg-white/70 p-8 shadow-[0_20px_70px_-35px_rgba(15,23,42,0.25)] backdrop-blur md:grid-cols-[1.05fr_0.95fr] dark:border-slate-700/70 dark:bg-slate-900/70 md:p-10">
+                <div class="border-b border-slate-200/70 pb-6 md:border-b-0 md:border-r md:pr-8 md:pb-0 dark:border-slate-700/70">
+                    <p class="mb-4 font-mono text-[0.7rem] uppercase tracking-[0.28em] text-[#64748B]">FEATURED SHOWCASE</p>
+                    <h2 class="font-serif text-3xl font-semibold tracking-[-0.02em] text-[#0F172A] sm:text-4xl dark:text-[#F8FAFC]">AI Project Showcase</h2>
+                    <p class="mt-3 font-serif text-lg italic text-[#64748B]">OpenAI API • Prompt Engineering </p>
+                </div>
+                <div class="flex flex-col justify-between gap-6">
+                    <p class="max-w-xl text-sm leading-7 text-[#64748B] sm:text-base">
+                        Features AI-driven video production workflows, custom prompt engineering for scriptwriting and visual assets, and dynamic content creation exploring AI & design.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <a href="https://www.youtube.com/channel/UCK7EpLNHNCbvzlwq71Wd6Bg" target="_blank" rel="noopener noreferrer" class="rounded-full bg-[#0F172A] px-4 py-2.5 text-sm font-medium uppercase tracking-[0.24em] text-white transition hover:bg-[#D4A017] dark:bg-[#F8FAFC] dark:text-[#0F172A]">
+                            AI YouTube Channel →
+                        </a>
+                        <span class="rounded-full border border-slate-300/80 px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.24em] text-[#64748B] dark:border-slate-700/70">AI & DESIGN</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STREAM VIEW: Full-screen Single Column Slow Scroll Layout -->
+        <div id="portfolio-grid" x-show="viewMode === 'stream'" class="transition-opacity duration-700">
+            <template x-for="(project, index) in projects" :key="project.id">
+                <section class="min-h-screen w-full py-20 md:py-32 px-6 md:px-16 flex flex-col justify-center border-t border-gallery-muted/15 relative"
+                         :id="`work-${project.id}`">
+                    
+                    <!-- Section Meta & Numbering -->
+                    <div class="w-full max-w-7xl mx-auto mb-8 md:mb-12 flex justify-between items-baseline">
+                        <div class="flex items-center space-x-4">
+                            <span class="font-mono text-xs text-gallery-muted tracking-widest" x-text="`0${index + 1} / 0${projects.length}`"></span>
+                            <span class="h-px w-8 bg-gallery-muted/30"></span>
+                            <span class="text-[10px] uppercase tracking-ultra text-gallery-muted" x-text="project.medium"></span>
+                        </div>
+                        <div class="text-[10px] uppercase tracking-ultra text-gallery-muted hidden sm:block" x-text="project.dimensions"></div>
+                    </div>
+
+                    <!-- Massive Image Container (Centered & Full Impact) -->
+                    <div class="w-full max-w-7xl mx-auto my-auto">
+                        <div class="image-container bg-gallery-card dark:bg-gallery-darkCard overflow-hidden rounded-sm relative group cursor-pointer"
+                             @mouseenter="hoveringImage = true; cursorText = 'INSPECT'"
+                             @mouseleave="hoveringImage = false"
+                             @click="openLightbox(project)">
+                            
+                            <!-- Main High-Res Image -->
+                            <img :src="project.imageUrl" 
+                                 :alt="project.title" 
+                                 class="w-full h-[65vh] md:h-[78vh] object-cover object-center grayscale-[20%] hover:grayscale-0 transition-all duration-1000"
+                                 loading="lazy"
+                                 @error="$el.src='https://picsum.photos/1600/1000?random=' + project.id">
+
+                            <!-- Subtle Overlay Gradient -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-end p-8 md:p-12">
+                                <span class="text-white text-xs tracking-widest uppercase font-light backdrop-blur-md px-4 py-2 border border-white/20 rounded-full">
+                                    Click to inspect details & AI prompt notes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Title & Caption Below Work -->
+                    <div class="w-full max-w-7xl mx-auto mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                        <div class="md:col-span-7">
+                            <h2 class="font-serif text-3xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2">
+                                <span x-text="project.title"></span>
+                            </h2>
+                            <p class="font-serif italic text-lg md:text-xl text-gallery-muted font-light" x-text="project.subtitle"></p>
+                        </div>
+                        
+                        <div class="md:col-span-5 flex flex-col justify-between space-y-4">
+                            <p class="font-sans text-xs md:text-sm text-gallery-muted leading-relaxed font-light" x-text="project.description"></p>
+                            
+                            <div class="pt-2 flex items-center space-x-6 text-[10px] uppercase tracking-ultra">
+                                <button @click="openLightbox(project)" class="hover:text-gallery-accent underline underline-offset-4 transition-colors">
+                                    VIEW DETAILS &rarr;
+                                </button>
+                                <span class="text-gallery-muted/40">|</span>
+                                <span class="text-gallery-muted" x-text="`YEAR: ${project.year}`"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </template>
+        </div>
+
+        <!-- INDEX VIEW: Alternative High-Density Catalog View -->
+        <div x-show="viewMode === 'grid'" x-cloak class="min-h-screen py-32 px-6 md:px-16 max-w-7xl mx-auto transition-opacity duration-700">
+            <div class="mb-16 border-b border-gallery-muted/20 pb-8 flex justify-between items-end">
+                <div>
+                    <h2 class="font-serif text-4xl md:text-6xl font-light mb-2">Complete Exhibition Index</h2>
+                    <p class="text-xs uppercase tracking-ultra text-gallery-muted">CATALOGUE RAISONNÉ &bull; 6 WORKS ON DISPLAY</p>
+                </div>
+                <button @click="viewMode = 'stream'" class="text-xs uppercase tracking-ultra text-gallery-muted hover:text-gallery-text transition-colors">
+                    &larr; BACK TO WALKTHROUGH
+                </button>
+            </div>
+
+            <!-- Dense Minimalist Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
+                <template x-for="(project, index) in projects" :key="`grid-${project.id}`">
+                    <div class="group cursor-pointer" @click="openLightbox(project)">
+                        <div class="aspect-[4/5] bg-gallery-card dark:bg-gallery-darkCard overflow-hidden mb-6 relative">
+                            <img :src="project.imageUrl" 
+                                 :alt="project.title" 
+                                 class="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700">
+                        </div>
+                        <div class="flex justify-between items-baseline text-[10px] font-mono text-gallery-muted mb-1">
+                            <span x-text="`CAT. NO 0${index + 1}`"></span>
+                            <span x-text="project.year"></span>
+                        </div>
+                        <h3 class="font-serif text-2xl font-light group-hover:italic transition-all" x-text="project.title"></h3>
+                        <p class="text-xs text-gallery-muted mt-1 font-light" x-text="project.medium"></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Portfolio Footer -->
+        <footer class="mt-20 w-full border-t border-slate-200/80 px-6 py-12 md:px-8 lg:px-10 dark:border-slate-700/70">
+            <div class="mx-auto grid max-w-7xl gap-8 md:grid-cols-3">
+                <div class="space-y-3">
+                    <h3 class="text-lg font-semibold tracking-[-0.02em] text-[#0F172A] dark:text-[#F8FAFC]">Max Yu</h3>
+                    <p class="max-w-sm text-sm leading-7 text-[#64748B]">
+                        Year 2 student at HKUST exploring technology, design, and problem-solving through thoughtful projects and creative builds.
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="font-mono text-[0.7rem] uppercase tracking-[0.24em] text-[#64748B]">Quick Links</p>
+                    <ul class="space-y-2 text-sm text-[#0F172A] dark:text-[#F8FAFC]">
+                        <li><a href="#" class="transition hover:text-[#D4A017]">Download Resume (.PDF)</a></li>
+                        <li><a href="https://github.com/Liary-lishang" class="transition hover:text-[#D4A017]">GitHub ↗</a></li>
+                        <li><a href="https://www.linkedin.com/in/max-yu-8ba032426/" class="transition hover:text-[#D4A017]">LinkedIn ↗</a></li>
+                    </ul>
+                </div>
+
+                <div class="flex flex-col justify-between gap-4">
+                    <div>
+                        <label for="themeSelect" class="mb-2 block font-mono text-[0.7rem] uppercase tracking-[0.24em] text-[#64748B]">Theme Preference</label>
+                        <select id="themeSelect" onchange="setTheme(this.value === 'dark')" class="w-full rounded-full border border-slate-300/80 bg-white/70 px-4 py-2 text-sm text-[#0F172A] outline-none transition focus:border-[#D4A017] dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-[#F8FAFC]">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    <p class="text-sm text-[#64748B]">© 2026 Max Yu</p>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Interactive Inspector Modal / Curator Lightbox -->
+    <div x-show="activeProject !== null" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-black/90 backdrop-blur-md transition-opacity duration-500"
+         x-transition:enter="ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <div class="w-full h-full max-w-7xl flex flex-col justify-between text-white relative">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center py-4 border-b border-white/10 z-10">
+                <div class="text-[10px] uppercase tracking-ultra text-white/60">
+                    AI GENERATED PRODUCT &bull; <span x-text="activeProject?.title"></span>
+                </div>
+                <button @click="closeLightbox()" class="hover:opacity-60 transition-opacity flex items-center space-x-2 text-xs uppercase tracking-widest">
+                    <span>CLOSE</span>
+                    <span class="text-lg">&times;</span>
+                </button>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto py-8">
+                <!-- Massive High-Res View -->
+                <div class="lg:col-span-8 h-[55vh] lg:h-[70vh] w-full flex items-center justify-center relative overflow-hidden group">
+                    <img :src="activeProject?.imageUrl" 
+                         :alt="activeProject?.title" 
+                         class="max-h-full max-w-full object-contain rounded-sm shadow-2xl transition-transform duration-700 group-hover:scale-105">
+                </div>
+
+                <!-- Detailed Curator Information Panel -->
+                <div class="lg:col-span-4 space-y-6 text-white/90">
+                    <div>
+                        <p class="text-[10px] font-mono text-white/40 uppercase mb-2" x-text="`CATALOGUE #${activeProject?.id}`"></p>
+                        <h2 class="font-serif text-4xl lg:text-5xl font-light leading-tight" x-text="activeProject?.title"></h2>
+                        <p class="font-serif italic text-lg text-white/60 mt-1" x-text="activeProject?.subtitle"></p>
+                    </div>
+
+                    <div class="space-y-3 py-4 border-y border-white/10 text-xs font-light">
+                        <div class="flex justify-between">
+                            <span class="text-white/40 uppercase text-[10px] tracking-widest">DESIGNER</span>
+                            <span x-text="activeProject?.artist"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/40 uppercase text-[10px] tracking-widest">CATEGORY</span>
+                            <span x-text="activeProject?.medium"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/40 uppercase text-[10px] tracking-widest">TYPE</span>
+                            <span x-text="activeProject?.dimensions"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/40 uppercase text-[10px] tracking-widest">USED AI</span>
+                            <span x-text="activeProject?.provenance"></span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-[10px] uppercase tracking-ultra text-white/40 mb-2">PROMPT</p>
+                        <p class="text-xs leading-relaxed text-white/80 font-light" x-text="activeProject?.curatorNote"></p>
+                    </div>
+
+                    <div class="pt-4 flex items-center justify-between">
+                        <button @click="prevProject()" class="text-[10px] uppercase tracking-ultra hover:text-white/60">
+                            &larr; PREVIOUS WORK
+                        </button>
+                        <button @click="nextProject()" class="text-[10px] uppercase tracking-ultra hover:text-white/60">
+                            NEXT WORK &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="py-4 border-t border-white/10 text-[10px] uppercase tracking-ultra text-white/40 flex justify-between">
+                <span>PRESS ESCAPE OR CLICK OUTSIDE TO RETURN</span>
+                <span>KUNSTHALLE ARCHIVE ID: 2026-SOL-09</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info / About Slide-Over Drawer -->
+    <div x-show="infoOpen" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-hidden" 
+         aria-labelledby="slide-over-title" 
+         role="dialog" 
+         aria-modal="true">
+        
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+             @click="infoOpen = false"></div>
+
+        <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+            <div class="pointer-events-auto w-screen max-w-md transform transition-transform duration-500 bg-gallery-bg dark:bg-gallery-darkBg text-gallery-text dark:text-gallery-darkText p-8 md:p-12 flex flex-col justify-between shadow-2xl border-l border-gallery-muted/20">
+                
+                <div>
+                    <!-- Close button -->
+                    <div class="flex justify-between items-center mb-12">
+                        <span class="text-[10px] uppercase tracking-ultra text-gallery-muted">ABOUT THE GALLERY</span>
+                        <button @click="infoOpen = false" class="text-2xl hover:opacity-60">&times;</button>
+                    </div>
+
+                    <!-- Gallery Narrative -->
+                    <h2 class="font-serif text-3xl font-light mb-6 leading-tight">
+                        A Quiet Sanctuary for Contemporary Thought
+                    </h2>
+
+                    <div class="space-y-4 text-xs font-light text-gallery-muted leading-relaxed">
+                        <p>
+                            Founded in 2022, Kunsthalle Pavilion operates as a non-profit spatial laboratory exploring minimalism, spatial acoustics, and structural reduction in modern art.
+                        </p>
+                        <p>
+                            Our single-stream exhibition philosophy forces contemplation. Rather than overwhelming the visitor with dense grids, each work is granted its own entire visual horizon.
+                        </p>
+                    </div>
+
+                    <!-- Visiting Hours -->
+                    <div class="mt-12 pt-8 border-t border-gallery-muted/20 space-y-4">
+                        <h4 class="text-[10px] uppercase tracking-ultra text-gallery-muted">CURRENT EXHIBITION</h4>
+                        <p class="font-serif text-xl italic">The Architecture of Solitude</p>
+                        <p class="text-xs text-gallery-muted">March 14, 2026 — November 28, 2026</p>
+                        <p class="text-xs text-gallery-muted">Curated by Helena von Berg</p>
+                    </div>
+                </div>
+
+                <!-- Newsletter / Contact -->
+                <div class="pt-8 border-t border-gallery-muted/20">
+                    <p class="text-[10px] uppercase tracking-ultra text-gallery-muted mb-3">RECEIVE EXHIBITION DISPATCHES</p>
+                    <div class="flex border-b border-gallery-muted/40 pb-2">
+                        <input type="email" placeholder="Your email address" class="bg-transparent text-xs w-full focus:outline-none placeholder:text-gallery-muted/50">
+                        <button class="text-xs uppercase tracking-widest hover:opacity-60">&rarr;</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setTheme(isDark) {
+            document.documentElement.classList.toggle('dark', isDark);
+            const toggle = document.getElementById('themeToggleBtn');
+            if (toggle) {
+                toggle.textContent = isDark ? 'LIGHT MODE ☀️' : 'DARK MODE 🌙';
+            }
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        function toggleTheme() {
+            const next = !document.documentElement.classList.contains('dark');
+            setTheme(next);
+        }
+
+        function scrollToShowcases() {
+            const target = document.getElementById('portfolio-grid');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(savedTheme ? savedTheme === 'dark' : prefersDark);
+        });
+
+        function galleryApp() {
+            return {
+                darkMode: false,
+                viewMode: 'stream', // 'stream' or 'grid'
+                hoveringImage: false,
+                cursorText: 'EXPLORE',
+                cursor: { x: 0, y: 0 },
+                scrollProgress: 0,
+                infoOpen: false,
+                activeProject: null,
+                audioPlaying: false,
+                audioCtx: null,
+                oscillator: null,
+
+                // 6 Curated Masterworks with massive Picsum photos
+                projects: [
+                    {
+                        id: 1,
+                        title: "Nocturne in Alabaster",
+                        subtitle: "Interventions with monolithic stone and light",
+                        artist: "Max Yu",
+                        year: "2026",
+                        medium: "AI-Assisted Multimedia Design",
+                        dimensions: "AI Generated Photo",
+                        provenance: "Google Gemini & Deepseek",
+                        imageUrl: "https://picsum.photos/id/1018/1600/1000",
+                        description: "Script: Deepseek<br />Prompt Generator: Google Gemini<br />Image: Google Gemini",
+                        curatorNote: "A wide-angle landscape shot capturing the dramatic, rolling green hills of the Quiraing on the Isle of Skye under a moody, overcast sky, with mist clinging to the steep ridges and distant peaks fading into the hazy, cloudy background. In the bottom left corner, a semi-transparent text box reads: 'CLICK TO INSPECT DETAILS & CURATOR NOTES.'"
+                    },
+                    {
+                        id: 2,
+                        title: "Monolith & Echo",
+                        subtitle: "Spatial architecture study, Kyoto Series",
+                        artist: "Max Yu",
+                        year: "2026",
+                        medium: "AI-Assisted Multimedia Design",
+                        dimensions: "AI Generated Photo",
+                        provenance: "Google Gemini & Deepseek",
+                        imageUrl: "https://picsum.photos/id/1025/1600/1000",
+                        description: "Script: Deepseek<br />Prompt Generator: Google Gemini<br />Image: Google Gemini",
+                        curatorNote: "Slow dolly in on a small pug wrapped snugly in a cream plaid blanket with pink and green stripes, sitting upright in the middle of a forest path, soft natural overcast lighting, lush green foliage in a shallow depth of field, hyper-realistic cinematic style"
+                    },
+                    {
+                        id: 3,
+                        title: "Shadows on Raw Silk",
+                        subtitle: "Acoustic textile structure",
+                        artist: "Max Yu",
+                        year: "2026",
+                        medium: "AI-Assisted Multimedia Design",
+                        dimensions: "AI Generated Photo",
+                        provenance: "Google Gemini & Deepseek",
+                        imageUrl: "https://picsum.photos/id/1036/1600/1000",
+                        description: "Script: Deepseek<br />Prompt Generator: Google Gemini<br />Image: Google Gemini",
+                        curatorNote: "Slow dolly in on a snow-covered high-altitude mountain campsite, yellow expedition tent dusted with fresh snow beside a low stone wall, majestic jagged snowy peaks under a bright partly cloudy sky, hyper-realistic cinematic style"
+                    },
+                    {
+                        id: 4,
+                        title: "The Geography of Void",
+                        subtitle: "Monochromatic pigment on flax canvas",
+                        artist: "Max Yu",
+                        year: "2026",
+                        medium: "AI-Assisted Multimedia Design",
+                        dimensions: "AI Generated Photo",
+                        provenance: "Google Gemini & Deepseek",
+                        imageUrl: "https://picsum.photos/id/1043/1600/1000",
+                        description: "Script: Deepseek<br />Prompt Generator: Google Gemini<br />Image: Google Gemini",
+                        curatorNote: "A majestic, high-resolution landscape photograph of Yosemite Valley, featuring towering granite cliff faces framing a clear, calm river. The tranquil water creates soft reflections of the surrounding lush pine forest, sandy banks, and large rock outcrops, all illuminated by bright natural daylight under a soft blue sky with streaky, white cirrus clouds."
+                    },
+                    {
+                        id: 5,
+                        title: "Vapor & Structure",
+                        subtitle: "Environmental atmospheric chamber",
+                        artist: "Max Yu",
+                        year: "2026",
+                        medium: "AI-Assisted Multimedia Design",
+                        dimensions: "AI Generated Photo",
+                        provenance: "Google Gemini & Deepseek",
+                        imageUrl: "https://picsum.photos/id/1050/1600/1000",
+                        description: "Script: Deepseek<br />Prompt Generator: Google Gemini<br />Image: Google Gemini",
+                        curatorNote: "A scenic high-angle coastal landscape photograph capturing dramatic sandstone cliffs meeting vibrant teal and deep blue ocean waters. Swirling white foam surrounds large sea stacks standing in a sheltered cove, framed by coastal vegetation on the immediate right cliff face and low rolling hills receding under a soft, overcast sky."
+                    },
+                    {
+                        id: 6,
+                        title: "Tectonic Silence",
+                        subtitle: "Limestone and iron oxidized plates",
+                        artist: "Max Yu",
+                        year: "2026",
+                        medium: "AI-Assisted Multimedia Design",
+                        dimensions: "AI Generated Photo",
+                        provenance: "Google Gemini & Deepseek",
+                        imageUrl: "https://picsum.photos/id/1069/1600/1000",
+                        description: "Heavy horizontal limestone slabs resting upon razor-thin oxidized steel ribbons, defying perceived weight and structural balance.",
+                        curatorNote: "A vibrant, high-contrast underwater photograph featuring a Pacific sea nettle jellyfish swimming diagonally against a deep, gradient blue background. The jellyfish displays a smooth, bright orange dome-shaped cap, frilly golden-yellow oral arms, and long, delicate, dark red tentacles trailing gracefully behind it through the water."
+                    }
+                ],
+
+                init() {
+                    // Track scroll position for progress bar
+                    window.addEventListener('scroll', () => {
+                        const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+                        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                        this.scrollProgress = (winScroll / height) * 100;
+                    });
+
+                    // Keyboard navigation for lightbox
+                    window.addEventListener('keydown', (e) => {
+                        if (this.activeProject !== null) {
+                            if (e.key === 'Escape') this.closeLightbox();
+                            if (e.key === 'ArrowRight') this.nextProject();
+                            if (e.key === 'ArrowLeft') this.prevProject();
+                        }
+                    });
+                },
+
+                updateCursor(e) {
+                    this.cursor.x = e.clientX;
+                    this.cursor.y = e.clientY;
+                },
+
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                },
+
+                scrollToTop() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                scrollToFirstWork() {
+                    const first = document.getElementById('work-1');
+                    if (first) {
+                        first.scrollIntoView({ behavior: 'smooth' });
+                    }
+                },
+
+                openLightbox(project) {
+                    this.activeProject = project;
+                    document.body.style.overflow = 'hidden';
+                },
+
+                closeLightbox() {
+                    this.activeProject = null;
+                    document.body.style.overflow = 'auto';
+                },
+
+                nextProject() {
+                    if (!this.activeProject) return;
+                    const currentIndex = this.projects.findIndex(p => p.id === this.activeProject.id);
+                    const nextIndex = (currentIndex + 1) % this.projects.length;
+                    this.activeProject = this.projects[nextIndex];
+                },
+
+                prevProject() {
+                    if (!this.activeProject) return;
+                    const currentIndex = this.projects.findIndex(p => p.id === this.activeProject.id);
+                    const prevIndex = (currentIndex - 1 + this.projects.length) % this.projects.length;
+                    this.activeProject = this.projects[prevIndex];
+                },
+
+                // Minimal Ambient Sine-wave drone synthesizer (Web Audio API)
+                toggleAudio() {
+                    if (this.audioPlaying) {
+                        this.stopAudio();
+                    } else {
+                        this.startAudio();
+                    }
+                },
+
+                startAudio() {
+                    try {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        this.audioCtx = new AudioContext();
+                        
+                        // Warm low frequency warm ambient drone (55Hz sub A drone with subtle tremolo)
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(55, this.audioCtx.currentTime); // Deep warm low A note
+                        
+                        // Soft volume fade in
+                        gain.gain.setValueAtTime(0.001, this.audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.03, this.audioCtx.currentTime + 3);
+                        
+                        osc.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+                        
+                        osc.start();
+                        this.oscillator = osc;
+                        this.audioPlaying = true;
+                    } catch(e) {
+                        console.log('Web Audio not supported or blocked');
+                    }
+                },
+
+                stopAudio() {
+                    if (this.oscillator && this.audioCtx) {
+                        this.oscillator.stop();
+                        this.audioCtx.close();
+                        this.audioPlaying = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
